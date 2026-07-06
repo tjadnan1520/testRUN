@@ -14,10 +14,20 @@ export const googleCallback = [
   async (req, res) => {
     try {
       const token = generateToken(req.user.id);
+      const clientUrl = (process.env.CLIENT_URL || "").replace(/\/+$/, "");
 
-      res.redirect(
-        `${process.env.CLIENT_URL}/auth/success?token=${token}`
-      );
+      if (!clientUrl || clientUrl.includes("localhost")) {
+        console.error(
+          "CLIENT_URL is missing or points to localhost in production"
+        );
+        return res.status(500).json({
+          success: false,
+          message:
+            "Server configuration error: CLIENT_URL not set for production.",
+        });
+      }
+
+      res.redirect(`${clientUrl}/auth/success?token=${token}`);
     } catch (error) {
       res.status(500).json({
         success: false,
