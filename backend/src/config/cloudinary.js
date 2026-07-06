@@ -10,20 +10,8 @@ cloudinary.config({
 export const storage = new CloudinaryStorage({
   cloudinary,
   params: async (req, file) => {
-    let resourceType = "auto";
-    let folder = "basic-social-app";
-
-    if (file.mimetype.startsWith("image/")) {
-      folder = "basic-social-app/images";
-    } else if (file.mimetype === "application/pdf") {
-      folder = "basic-social-app/pdfs";
-    } else {
-      folder = "basic-social-app/documents";
-    }
-
     return {
-      folder,
-      resource_type: resourceType,
+      upload_preset: process.env.CLOUDINARY_UPLOAD_PRESET || "upload_image_file",
       public_id: `${Date.now()}-${file.originalname.split(".")[0]}`,
     };
   },

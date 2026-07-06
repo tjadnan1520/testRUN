@@ -1,19 +1,39 @@
-import { useContext } from "react";
-import { Navigate } from "react-router-dom";
-import { AuthContext } from "../context/AuthContext";
+import { createContext, useState, useEffect } from "react";
+import { getCurrentUser } from "../api/authApi";
 
-const ProtectedRoute = ({ children }) => {
-  const { user, loading } = useContext(AuthContext);
+export const AuthContext = createContext(null);
 
-  if (loading) {
-    return <h2>Loading...</h2>;
-  }
+const AuthProvider = ({ children }) => {
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-  if (!user) {
-    return <Navigate to="/login" replace />;
-  }
+  useEffect(() => {
+    const loadUser = async () => {
+      const token = localStorage.getItem("token");
 
-  return children;
+      if (!token) {
+        setLoading(false);
+        return;
+      }
+
+      try {
+        const response = await getCurrentUser();
+        setUser(response.user);
+      } catch {
+        localStorage.removeItem("token");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadUser();
+  }, []);
+
+  return (
+    <AuthContext.Provider value={{ user, setUser, loading, setLoading }}>
+      {children}
+    </AuthContext.Provider>
+  );
 };
 
-export default ProtectedRoute;
+export default AuthProvider;
