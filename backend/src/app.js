@@ -9,9 +9,18 @@ import postRoutes from "./routes/post.routes.js";
 
 const app = express();
 
-const allowedOrigins = process.env.CLIENT_URL?.split(",") || [
-  "http://localhost:5173",
-];
+const allowedOrigins = [
+  process.env.FRONTEND_URL,
+  process.env.CLIENT_URL,
+  ...(process.env.NODE_ENV !== "production" ? ["http://localhost:5173"] : []),
+]
+  .filter(Boolean)
+  .flatMap((origin) => origin.split(","))
+  .map((origin) => origin.trim().replace(/\/+$/, ""))
+  .filter(Boolean);
+
+app.set("trust proxy", 1);
+
 app.use(
   cors({
     origin: allowedOrigins,
@@ -28,6 +37,12 @@ app.use(
     secret: process.env.SESSION_SECRET,
     resave: false,
     saveUninitialized: false,
+    proxy: true,
+    cookie: {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+    },
   })
 );
 

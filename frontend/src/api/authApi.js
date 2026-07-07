@@ -1,9 +1,8 @@
 import axiosInstance from "./axios";
+import { getApiBaseUrl } from "./baseUrl";
 
 export const loginWithGoogle = () => {
-  window.location.href = `${
-    import.meta.env.VITE_API_URL || "http://localhost:5000/api"
-  }/auth/google`;
+  window.location.href = `${getApiBaseUrl()}/auth/google`;
 };
 
 export const getCurrentUser = async () => {

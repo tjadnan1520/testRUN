@@ -1,4 +1,5 @@
 import { useContext, useEffect } from "react";
+import { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 
 import { loginWithGoogle, getCurrentUser } from "../api/authApi";
@@ -6,6 +7,7 @@ import { AuthContext } from "../context/AuthContext";
 
 const Login = () => {
   const { user, setUser } = useContext(AuthContext);
+  const [authError, setAuthError] = useState("");
 
   const navigate = useNavigate();
   const location = useLocation();
@@ -13,6 +15,11 @@ const Login = () => {
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     const token = params.get("token");
+    const error = params.get("error");
+
+    if (error) {
+      setAuthError("Google sign-in failed. Please try again.");
+    }
 
     if (!token) return;
 
@@ -61,6 +68,12 @@ const Login = () => {
         <h1>Basic Social App</h1>
 
         <p>Login to continue</p>
+
+        {authError && (
+          <p style={{ color: "crimson", marginTop: "12px" }}>
+            {authError}
+          </p>
+        )}
 
         <button
           onClick={loginWithGoogle}

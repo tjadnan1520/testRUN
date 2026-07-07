@@ -1,38 +1,36 @@
 import passport from "passport";
 import { generateToken } from "../utils/generateToken.js";
 
+const getFrontendUrl = () => {
+  const frontendUrl = process.env.FRONTEND_URL || process.env.CLIENT_URL;
+
+  if (!frontendUrl) {
+    throw new Error("FRONTEND_URL or CLIENT_URL must be configured.");
+  }
+
+  return frontendUrl.replace(/\/+$/, "");
+};
+
 export const googleAuth = passport.authenticate("google", {
   scope: ["profile", "email"],
+  session: false,
 });
 
 export const googleCallback = [
   passport.authenticate("google", {
     session: false,
-    failureRedirect: "/login",
+    failureRedirect: `${getFrontendUrl()}/login?error=google_oauth_failed`,
   }),
 
   async (req, res) => {
     try {
       const token = generateToken(req.user.id);
-      const clientUrl = (process.env.CLIENT_URL || "").replace(/\/+$/, "");
 
-      if (!clientUrl || clientUrl.includes("localhost")) {
-        console.error(
-          "CLIENT_URL is missing or points to localhost in production"
-        );
-        return res.status(500).json({
-          success: false,
-          message:
-            "Server configuration error: CLIENT_URL not set for production.",
-        });
-      }
-
-      res.redirect(`${clientUrl}/auth/success?token=${token}`);
+      res.redirect(`${getFrontendUrl()}/auth/success?token=${token}`);
     } catch (error) {
-      res.status(500).json({
-        success: false,
-        message: "Authentication failed.",
-      });
+      return res.redirect(
+        `${getFrontendUrl()}/login?error=google_oauth_failed`
+      );
     }
   },
 ];
